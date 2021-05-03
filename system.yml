@@ -1,0 +1,38 @@
+---
+- name: System is configured
+  hosts: all
+  
+  tasks:
+    - name: full system upgrade
+      pacman:
+        update_cache: yes
+        upgrade: yes
+    - name: install utilities
+      pacman:
+        state: present
+        name:
+          - openssh
+          - neovim
+          - git
+          - zsh
+          - curl
+          - upower
+          - iftop
+          - htop
+          - docker
+          - virtualbox-host-modules-arch
+          - virtualbox
+          - vagrant
+          - base-devel
+    - name: install programming languagues
+      pacman:
+        state: present
+        name:
+          - python
+          - nodejs
+          - go
+    - name:
+      systemd:
+        state: started
+        enabled: true
+        name: docker

@@ -1,0 +1,22 @@
+---
+- name: Add user 'pitakill' 
+  hosts: all
+  
+  tasks:
+    - name: pitakill user
+      user:
+        state: present
+        name: pitakill
+        uid: 1000
+        shell: /usr/bin/zsh
+        append: yes
+        groups:
+          - wheel
+          - audio
+          - docker
+          - vboxusers
+    - name: create authorized key
+      ansible.posix.authorized_key:
+        state: present
+        user: pitakill
+        key: "{{ lookup('file', '/Users/leopoldocaballero/.ssh/id_ed25519.pub') }}"

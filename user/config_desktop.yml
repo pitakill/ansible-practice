@@ -1,0 +1,80 @@
+---
+- name: config 'pitakill' 
+  hosts: all
+
+  roles:
+    - kewlfft.aur
+  
+  tasks:
+    - name: full system upgrade
+      become: yes
+      pacman:
+        update_cache: yes
+        upgrade: yes
+    - name: install utilities
+      become: yes
+      pacman:
+        state: present
+        name:
+          - base-devel
+          - gnome
+          - tmux
+          - noto-fonts-emoji
+          - noto-fonts-cjk 
+          - noto-fonts
+          - qterminal
+          - gnome-tweaks
+          - chrome-gnome-shell
+          - xclip
+    - name: pause to add yay to the system
+      pause:
+        prompt: "Go and add yay to the system, i'll wait"
+        echo: no
+    - name: install AUR packages
+      aur:
+        name:
+          - brave-bin
+          - bitwarden-bin
+          - youtube-music-bin
+          - discord
+          - slack-desktop
+          - whatsapp-for-linux
+          - telegram-desktop-bin
+          - nerd-fonts-iosevka
+          - google-chrome
+    - name: start and enable gdm
+      become: yes
+      systemd:
+        state: started
+        enabled: true
+        name: gdm
+    - name: start and enable network manager
+      become: yes
+      systemd:
+        state: started
+        enabled: true
+        name: NetworkManager
+    - name:
+      become: yes
+      systemd:
+        state: stopped
+        enabled: false
+        name: iwd
+    - name: start and enable dhcpcd 
+      become: yes
+      systemd:
+        state: stopped
+        enabled: false
+        name: dhcpcd
+    - name: create qterminal config directory
+      file:
+        state: directory
+        path: ~/.config/qterminal.org
+        owner: pitakill
+        group: pitakill
+        mode: 0755
+    - name: link qterminal config
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/qterminal.ini
+        path: ~/.config/qterminal.org/qterminal.ini

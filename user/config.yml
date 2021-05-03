@@ -1,0 +1,108 @@
+---
+- name: config 'pitakill' 
+  hosts: all
+  
+  tasks:
+    - name: create ssh key
+      community.crypto.openssh_keypair:
+        type: ed25519
+        size: 512
+        path: ~/.ssh/id_ed25519
+        owner: pitakill
+        group: pitakill
+    - name: get ssh id public
+      slurp:
+        src: ~/.ssh/id_ed25519.pub
+      register: sshidpub
+    - name: output the content of the ssh
+      debug:
+        var: sshidpub
+    - name: pause to add ssh key to github
+      pause:
+        prompt: "Go and add the key to github, i'll wait"
+        echo: no
+    - name: create git personal directory
+      file:
+        state: directory
+        path: ~/Projects/personal
+        owner: pitakill
+        group: pitakill
+        mode: 0755
+    - name: clone conifiguration
+      git:
+        repo: git@github.com:pitakill/dot_files.git
+        dest: ~/Projects/personal/dot_files
+        accept_hostkey: yes
+        key_file: ~/.ssh/id_ed25519
+    - name: link gitignore
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/git/ignore
+        path: ~/.gitignore
+    - name: link gitconfig
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/git/config
+        path: ~/.gitconfig
+    - name: link gitmessage
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/git/message
+        path: ~/.gitmessage
+    - name: check if .zshrc exists
+      stat:
+        path: ~/.zshrc
+      register: zshrc
+    - name: Cloning  oh-my-zsh
+      git:
+        repo: https://github.com/robbyrussell/oh-my-zsh
+        dest: ~/.oh-my-zsh
+    - name: Link .zshrc
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/zshrc
+        path: ~/.zshrc
+    - name: create config personal directory
+      file:
+        state: directory
+        path: ~/Projects/.config
+        owner: pitakill
+        group: pitakill
+        mode: 0755
+    - name: clone vundle
+      git:
+        repo: https://github.com/VundleVim/Vundle.vim.git
+        dest: ~/.config/nvim/bundle/Vundle.vim
+        accept_hostkey: yes
+        key_file: ~/.ssh/id_ed25519
+    - name: Link nvim
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/nvimrc
+        path: ~/.config/nvim/init.vim
+    - name: link coc settings
+      file:
+        state: link
+        src: ~/Projects/personal/dot_files/coc-settings.json
+        path: ~/.config/nvim/coc-settings.json
+    - name: install vundle plugins
+      command:
+        cmd: nvim +PluginInstall +qall
+    - name: install go binaries
+      command:
+        cmd: nvim +GoInstallBinaries +qall
+    - name: install coc stuff
+      command:
+        cmd: nvim -c 'CocInstall -sync coc-json coc-html coc-css coc-tsserver coc-prettier coc-go coc-styled-components coc-graphql|q'
+    - name: clean bashrc
+      file:
+        state: absent
+        path: ~/.bashrc
+    - name: clean bash logout
+      file:
+        state: absent
+        path: ~/.bash_logout
+    - name: clean bash profile
+      file:
+        state: absent
+        path: ~/.bash_profile
